@@ -1,5 +1,6 @@
 //dependencies 
 const { Schema, model } = require('mongoose');
+const dateFormat = require('../utils/dateFormat');
 
 //schema. data for the the users when they create a new pizza
 //The name of the pizza
@@ -9,7 +10,9 @@ const { Schema, model } = require('mongoose');
 // the pizzas suggested size
 // the pizzas toppings
 
-const PizzaSchema = new Schema({
+const PizzaSchema = new Schema(
+    {
+
     pizzaName: {
         type: String
     },
@@ -18,13 +21,39 @@ const PizzaSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+        get: (createdAtVal) => dateFormat(createdAtVal)
     },
     size: {
         type: String,
         default: 'Large'
     },
-    toppings: []
+    toppings: [],
+    
+    comments: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Comment'                      //ref property is important because it tells the Pizza model which documents to search to find the right comments 
+        }
+    ]
+
+    },
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true
+        },
+        id: false
+    }
+);
+
+//Virtuals allow you to add virtual properties to a document that arent stored in the database.
+//Virtuals all us to add more information to adatabse response so that we dont have to add in the information manually
+//Becuase we only care about comment count in respect to pizzas, well add the virtual to models/Pizza.js
+
+//get total count of comments and replies on retrieval
+PizzaSchema.virtual('commentCount').get(function() {
+    return this.comments.length;
 });
 
 
